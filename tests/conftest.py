@@ -29,18 +29,46 @@ def module_path():
     return MODULE_PATH
 
 
+def _download_test_file(user_path: Path, name: str) -> Path:
+    """Download a test shapes file if it is not already available."""
+    file_path = user_path / name / "shapes.parquet"
+
+    if file_path.exists():
+        return file_path
+
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    partial_path = file_path.with_suffix(".parquet.part")
+    partial_path.unlink(missing_ok=True)
+
+    try:
+        urlretrieve(TEST_FILES[name], partial_path)
+        partial_path.replace(file_path)
+    except Exception:
+        partial_path.unlink(missing_ok=True)
+        raise
+
+    return file_path
+
+
 @pytest.fixture(scope="session")
 def user_path() -> Path:
-    """Download and unzip test files."""
+    """Path to user resources used during testing."""
     user_dir = Path("resources/user/")
-    # If test file have been downloaded, assume everything is OK.
-    # Otherwise, re-download.
-    for name, file_url in TEST_FILES.items():
-        file_path = user_dir / name / "shapes.parquet"
-        if not file_path.exists():
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            urlretrieve(file_url, file_path)
+    user_dir.mkdir(parents=True, exist_ok=True)
     return user_dir
+
+
+@pytest.fixture(scope="session")
+def europe_small_shapes(user_path: Path) -> Path:
+    """Small European shapes file used by the integration test."""
+    return _download_test_file(user_path, "EUROPE_S_C1_ADM1")
+
+
+@pytest.fixture(scope="session")
+def europe_large_shapes(user_path: Path) -> Path:
+    """Large European shapes file used by the local end-to-end test."""
+    return _download_test_file(user_path, "EUROPE_L_C34_ADM1")
 
 
 @pytest.fixture(scope="session")

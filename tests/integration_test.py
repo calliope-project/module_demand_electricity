@@ -45,25 +45,34 @@ def test_snakemake_environments(module_path, pixi_platforms, tmp_path):
 
 
 @pytest.fixture(scope="module")
-def integration_path(user_path: Path, module_path: Path, token_entsoe: Path):
+def integration_path(
+    europe_small_shapes: Path,
+    user_path: Path,
+    module_path: Path,
+    token_entsoe: Path,
+):
     """Ensures the minimal integration test is ready."""
     integration_dir = Path(module_path / "tests/integration")
+
     if integration_dir.exists():
-        # clean everything
         shutil.rmtree(integration_dir / "resources", ignore_errors=True)
         shutil.rmtree(integration_dir / "results/", ignore_errors=True)
+
     user_integ_dir = integration_dir / "resources/user"
+
     files_to_copy = {
-        "EUROPE_S_C1_ADM1/shapes.parquet": Path("EUROPE_S_C1_ADM1/shapes.parquet"),
-        "token_entsoe.txt": Path("token_entsoe.txt"),
-        "external_profiles/alb_external_test.csv": Path(
+        europe_small_shapes: Path("EUROPE_S_C1_ADM1/shapes.parquet"),
+        token_entsoe: Path("token_entsoe.txt"),
+        user_path / "external_profiles/alb_external_test.csv": Path(
             "external_profiles/alb_external_test.csv"
         ),
     }
+
     for source_file, destination in files_to_copy.items():
         destination_file = user_integ_dir / destination
         destination_file.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(user_path / source_file, destination_file)
+        shutil.copy(source_file, destination_file)
+
     return integration_dir
 
 
