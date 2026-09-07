@@ -46,10 +46,7 @@ def test_snakemake_environments(module_path, pixi_platforms, tmp_path):
 
 @pytest.fixture(scope="module")
 def integration_path(
-    europe_small_shapes: Path,
-    user_path: Path,
-    module_path: Path,
-    token_entsoe: Path,
+    europe_small_shapes: Path, user_path: Path, module_path: Path, token_entsoe: Path
 ):
     """Ensures the minimal integration test is ready."""
     integration_dir = Path(module_path / "tests/integration")
