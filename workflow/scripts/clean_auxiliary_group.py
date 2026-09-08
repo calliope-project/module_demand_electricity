@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Any
 import pandas as pd
 from _advanced_execution import load_execution_plan
 from _prepared_data import read_prepared_source
-from tclean import TCleanConfig, TimeGrid, clean
+from tclean import TimeGrid
+from tclean.gap_filling import fill_gaps
 
 if TYPE_CHECKING:
     snakemake: Any
@@ -46,8 +47,6 @@ def main(snakemake: Any) -> None:
         start=group_start, end=group_end, frequency=(snakemake.params.frequency)
     )
 
-    config = TCleanConfig(grid=grid)
-
     source_paths = list(snakemake.input.sources)
 
     if len(source_paths) != len(batches):
@@ -86,8 +85,8 @@ def main(snakemake: Any) -> None:
         else []
     )
 
-    (cleaned, data_source, cleaning_method) = clean(
-        sources, config=config, basic_rules=basic_rules
+    (cleaned, data_source, cleaning_method) = fill_gaps(
+        sources, grid=grid, basic_rules=basic_rules
     )
 
     cleaned.to_parquet(snakemake.output.demand)

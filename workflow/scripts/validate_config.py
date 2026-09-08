@@ -15,7 +15,7 @@ from _tclean_config import (
     build_time_grid,
 )
 from tclean import TimeGrid
-from tclean.basic import validate_basic_rules
+from tclean.gap_filling import validate_basic_rules
 
 if TYPE_CHECKING:
     snakemake: Any

@@ -7,10 +7,13 @@ from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 from _prepared_data import read_prepared_source
-from _tclean_config import build_basic_rules, build_tclean_config
-from tclean import clean
-from tclean.advanced import build_gap_report
-from tclean.provenance import build_cleaning_method_ranks, derive_cleaning_method_rank
+from _tclean_config import build_basic_rules, build_time_grid
+from tclean.gap_filling import (
+    build_cleaning_method_ranks,
+    build_gap_report,
+    derive_cleaning_method_rank,
+    fill_gaps,
+)
 
 if TYPE_CHECKING:
     snakemake: Any
@@ -38,19 +41,17 @@ def main(snakemake: Any) -> None:
 
     target_contexts = _read_target_contexts(snakemake.input.target_plan)
 
-    config = build_tclean_config(snakemake.params.temporal_scope)
+    grid = build_time_grid(snakemake.params.temporal_scope)
 
     sources = {
-        source_name: data.reindex(
-            index=config.grid.target_index, columns=target_contexts
-        )
+        source_name: data.reindex(index=grid.target_index, columns=target_contexts)
         for source_name, data in sources.items()
     }
 
     basic_rules = build_basic_rules(snakemake.params.gap_filling)
 
-    (cleaned, data_source, cleaning_method) = clean(
-        sources, config=config, basic_rules=basic_rules
+    (cleaned, data_source, cleaning_method) = fill_gaps(
+        sources, grid=grid, basic_rules=basic_rules
     )
 
     basic_rule_names = [rule["name"] for rule in basic_rules]
@@ -64,9 +65,7 @@ def main(snakemake: Any) -> None:
     )
 
     gap_report = build_gap_report(
-        cleaned,
-        grid=config.grid,
-        enabled=(snakemake.params.gap_filling["mode"] == "advanced"),
+        cleaned, grid=grid, enabled=(snakemake.params.gap_filling["mode"] == "advanced")
     )
 
     cleaned.to_parquet(snakemake.output.demand)

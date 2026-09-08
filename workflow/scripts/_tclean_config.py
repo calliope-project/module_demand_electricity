@@ -10,7 +10,7 @@ from _source_capabilities import (
     intersect_source_temporal_scope,
     uncovered_temporal_intervals,
 )
-from tclean import TCleanConfig, TimeGrid
+from tclean import TimeGrid
 
 
 def build_time_grid(temporal_scope: Mapping[str, Any]) -> TimeGrid:
@@ -20,11 +20,6 @@ def build_time_grid(temporal_scope: Mapping[str, Any]) -> TimeGrid:
         end=temporal_scope["end"],
         frequency=temporal_scope["frequency"],
     )
-
-
-def build_tclean_config(temporal_scope: Mapping[str, Any]) -> TCleanConfig:
-    """Build the T-Clean configuration used for demand cleaning."""
-    return TCleanConfig(grid=build_time_grid(temporal_scope))
 
 
 def build_basic_rules(gap_filling_config: Mapping[str, Any]) -> list[dict[str, Any]]:

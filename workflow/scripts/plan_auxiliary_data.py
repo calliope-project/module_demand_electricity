@@ -24,7 +24,7 @@ from _tclean_config import (
     filter_source_requests_by_temporal_scope,
     get_advanced_source_definitions,
 )
-from tclean.advanced import (
+from tclean.gap_filling import (
     build_auxiliary_acquisition_requirements,
     build_auxiliary_source_requests,
     select_active_advanced_rules,

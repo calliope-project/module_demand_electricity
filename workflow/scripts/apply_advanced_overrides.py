@@ -5,8 +5,7 @@ from pathlib import Path
 import pandas as pd
 from _advanced_execution import load_execution_plan
 from tclean import TimeGrid
-from tclean.advanced import read_external_profile
-from tclean.advanced.apply import apply_advanced_rules
+from tclean.gap_filling import apply_advanced_rules, read_external_profile
 
 plan = load_execution_plan(snakemake.input.plan)
 

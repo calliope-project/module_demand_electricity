@@ -7,7 +7,7 @@ from _tclean_config import (
     build_scaling_source_periods,
 )
 from tclean import TimeGrid
-from tclean.advanced import construct_from_sources
+from tclean.gap_filling import construct_from_sources
 
 plan = load_execution_plan(snakemake.input.plan)
 

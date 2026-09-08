@@ -4,7 +4,7 @@ import shutil
 
 import pandas as pd
 from _tclean_config import build_advanced_rules, build_basic_rules
-from tclean.provenance import build_cleaning_method_ranks, derive_cleaning_method_rank
+from tclean.gap_filling import build_cleaning_method_ranks, derive_cleaning_method_rank
 
 shutil.copyfile(snakemake.input.demand, snakemake.output.demand)
 
