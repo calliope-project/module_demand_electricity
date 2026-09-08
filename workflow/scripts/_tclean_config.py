@@ -12,6 +12,8 @@ from _source_capabilities import (
 )
 from tclean import TimeGrid
 
+CONSTRUCTED_SOURCE_NAME = "processed_demand"
+
 
 def build_time_grid(temporal_scope: Mapping[str, Any]) -> TimeGrid:
     """Build the canonical T-Clean time grid."""
@@ -34,6 +36,9 @@ def build_data_quality_tests(
         countries = test.pop("countries", None)
         if countries is not None:
             test["contexts"] = list(countries)
+
+        if "sources" not in test:
+            test["sources"] = [CONSTRUCTED_SOURCE_NAME]
 
         tests.append(test)
 

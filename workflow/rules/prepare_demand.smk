@@ -3,6 +3,8 @@ rule finalise_clean_demand:
         target_plan=target_data_plan,
         demand=final_clean_demand_input,
         cleaning_method=final_cleaning_method_input,
+        data_quality_failures=rules.evaluate_data_quality.output.failures,
+        data_quality_issues=rules.evaluate_data_quality.output.issues,
     output:
         demand=("<resources>/automatic/{shape}/load_cleaned.parquet"),
         cleaning_method=(

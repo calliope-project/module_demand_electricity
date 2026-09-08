@@ -187,14 +187,13 @@ def _config_with_data_quality(data_quality: dict) -> dict:
             "mode": "off",
             "basic": {"rules": []},
             "advanced": {
-                "auxiliary_data": {
-                    "basic_cleaning": {"enabled": True},
-                },
+                "auxiliary_data": {"basic_cleaning": {"enabled": True}},
                 "sources": {},
                 "rules": [],
             },
         },
     }
+
 
 def test_data_quality_allows_no_tests() -> None:
     """Check data-quality configuration may contain no tests."""
@@ -202,19 +201,11 @@ def test_data_quality_allows_no_tests() -> None:
 
     assert not _validate(config)
 
+
 def test_data_quality_rejects_contexts_selector() -> None:
     """Require module-facing country terminology instead of T-Clean contexts."""
     config = _config_with_data_quality(
-        {
-            "tests": [
-                {
-                    "name": "example_range",
-                    "method": "range",
-                    "contexts": ["ALB"],
-                }
-            ]
-        }
+        {"tests": [{"name": "example_range", "method": "range", "contexts": ["ALB"]}]}
     )
 
     assert _validate(config)
-

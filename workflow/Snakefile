@@ -66,6 +66,7 @@ include: "rules/_source_helpers.smk"
 include: "rules/automatic.smk"
 include: "rules/basic.smk"
 include: "rules/advanced.smk"
+include: "rules/data_quality.smk"
 
 
 # Source-specific workflow rules.

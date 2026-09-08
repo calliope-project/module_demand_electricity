@@ -3,6 +3,7 @@
 import pandas as pd
 import pytest
 from _tclean_config import (
+    CONSTRUCTED_SOURCE_NAME,
     build_advanced_rules,
     build_all_constructed_source_periods,
     build_basic_rules,
@@ -31,7 +32,7 @@ def test_build_time_grid_translates_temporal_scope() -> None:
 
 def test_build_basic_rules_returns_no_rules_when_mode_is_off() -> None:
     """Test basic rules returns nothing when disabled."""
-    config = {"mode": "off", "basic": {"rules": []},"data_quality": {"tests": []},}
+    config = {"mode": "off", "basic": {"rules": []}, "data_quality": {"tests": []}}
     assert build_basic_rules(config) == []
 
 
@@ -46,7 +47,7 @@ def test_build_basic_rules_preserves_configured_rule_order() -> None:
             "source_offsets": ["-24h"],
         },
     ]
-    config = {"mode": "basic", "basic": {"rules": rules},"data_quality": {"tests": []},}
+    config = {"mode": "basic", "basic": {"rules": rules}, "data_quality": {"tests": []}}
     assert build_basic_rules(config) == rules
 
 
@@ -369,10 +370,7 @@ def test_build_data_quality_tests_translates_countries_to_contexts() -> None:
                 "name": "country_range",
                 "method": "range",
                 "countries": ["ALB", "MNE"],
-                "minimum": {
-                    "value_mode": "fixed",
-                    "value": 0,
-                },
+                "minimum": {"value_mode": "fixed", "value": 0},
             }
         ]
     }
@@ -384,31 +382,37 @@ def test_build_data_quality_tests_translates_countries_to_contexts() -> None:
             "name": "country_range",
             "method": "range",
             "contexts": ["ALB", "MNE"],
-            "minimum": {
-                "value_mode": "fixed",
-                "value": 0,
-            },
+            "sources": [CONSTRUCTED_SOURCE_NAME],
+            "minimum": {"value_mode": "fixed", "value": 0},
         }
     ]
 
 
-def test_build_data_quality_tests_preserves_sources() -> None:
-    """Preserve configured T-Clean source selectors."""
+def test_build_data_quality_tests_defaults_to_constructed_source() -> None:
+    """Apply data-quality tests to constructed demand by default."""
     config = {
         "tests": [
             {
-                "name": "power_statistics_range",
+                "name": "non_negative",
                 "method": "range",
-                "sources": ["entsoe_power_statistics"],
-                "minimum": {
-                    "value_mode": "fixed",
-                    "value": 0,
-                },
+                "minimum": {"value_mode": "fixed", "value": 0},
             }
         ]
     }
 
     result = build_data_quality_tests(config)
 
-    assert result[0]["sources"] == ["entsoe_power_statistics"]
+    assert result[0]["sources"] == [CONSTRUCTED_SOURCE_NAME]
 
+
+def test_build_data_quality_tests_preserves_sources() -> None:
+    """Preserve explicitly configured source selectors."""
+    config = {
+        "tests": [
+            {"name": "source_check", "method": "range", "sources": ["entsoe", "opsd"]}
+        ]
+    }
+
+    result = build_data_quality_tests(config)
+
+    assert result[0]["sources"] == ["entsoe", "opsd"]
