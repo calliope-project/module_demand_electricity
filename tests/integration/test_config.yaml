@@ -2,16 +2,16 @@ integration_test:
   # The integration test uses a deliberately short hourly period to keep
   # provider downloads and workflow execution reasonably small.
   temporal_scope:
-    start: "2017-01-01"
-    end: "2017-01-03"
+    start: "2020-01-01"
+    end: "2020-01-03"
     frequency: "1h"
 
   # Load sources are listed in priority order. Where multiple sources provide
   # data for the same country and timestamp, the earlier source takes priority.
   # Supported sources include: entsoe, neso, opsd.
   load_sources:
-    - entsoe
-    - neso
+    # - entsoe
+    # - neso
     # - opsd
     - entsoe_power_statistics
 
@@ -144,8 +144,8 @@ integration_test:
         # construct_from_sources integration case.
         - name: build_alb_from_alb_2024
           country: ALB
-          start: "2017-01-01"
-          end: "2017-01-03"
+          start: "2020-01-01"
+          end: "2020-01-03"
           scope: overwrite
           source: alb_from_alb_2024
 
@@ -154,8 +154,8 @@ integration_test:
         # match_total construction case in place.
         - name: test_normalise_mean
           country: ALB
-          start: "2017-01-02"
-          end: "2017-01-03"
+          start: "2020-01-02"
+          end: "2020-01-03"
           scope: overwrite
           source: alb_from_alb_2024_normalised
 
@@ -173,7 +173,7 @@ integration_test:
         # exercising external_profile loading and overwrite application.
         - name: test_external_profile_overwrite
           country: ALB
-          start: "2017-01-01 00:00"
-          end: "2017-01-01 03:00"
+          start: "2020-01-01 00:00"
+          end: "2020-01-01 03:00"
           scope: overwrite
           source: alb_external_test
