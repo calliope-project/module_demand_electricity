@@ -180,8 +180,15 @@ integration_test:
 
   data_quality:
     tests:
-    - name: non_negative
-      method: range
-      minimum:
-        value_mode: fixed
-        value: 0
+      - name: non_negative
+        method: range
+        minimum:
+          value_mode: fixed
+          value: 0
+
+      - name: source_disagreement_example
+        method: source_disagreement
+        difference_mode: relative
+        threshold:
+          value_mode: fixed
+          value: 0.01

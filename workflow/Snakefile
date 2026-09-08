@@ -44,6 +44,7 @@ workflow.source_path("scripts/_plot_timeline.py")
 workflow.source_path("scripts/_prepared_data.py")
 workflow.source_path("scripts/_source_capabilities.py")
 workflow.source_path("scripts/_tclean_config.py")
+workflow.source_path("scripts/_plot_data_quality_timeline.py")
 # Register source-specific python scripts for remote module use.
 for source in SOURCE_REGISTRY.values():
     for python_file in source["workflow"]["python"]:
