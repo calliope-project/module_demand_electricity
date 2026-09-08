@@ -6,6 +6,7 @@ from _tclean_config import (
     build_advanced_rules,
     build_all_constructed_source_periods,
     build_basic_rules,
+    build_data_quality_tests,
     build_scaling_source_periods,
     build_time_grid,
     filter_source_requests_by_temporal_scope,
@@ -30,7 +31,7 @@ def test_build_time_grid_translates_temporal_scope() -> None:
 
 def test_build_basic_rules_returns_no_rules_when_mode_is_off() -> None:
     """Test basic rules returns nothing when disabled."""
-    config = {"mode": "off", "basic": {"rules": []}}
+    config = {"mode": "off", "basic": {"rules": []},"data_quality": {"tests": []},}
     assert build_basic_rules(config) == []
 
 
@@ -45,7 +46,7 @@ def test_build_basic_rules_preserves_configured_rule_order() -> None:
             "source_offsets": ["-24h"],
         },
     ]
-    config = {"mode": "basic", "basic": {"rules": rules}}
+    config = {"mode": "basic", "basic": {"rules": rules},"data_quality": {"tests": []},}
     assert build_basic_rules(config) == rules
 
 
@@ -55,6 +56,7 @@ def test_build_advanced_rules_returns_canonical_columns_when_empty() -> None:
         "mode": "advanced",
         "basic": {"rules": []},
         "advanced": {"sources": {}, "rules": []},
+        "data_quality": {"tests": []},
     }
     result = build_advanced_rules(config)
     assert result.empty
@@ -152,6 +154,7 @@ def test_normalisation_scaling_does_not_add_auxiliary_periods() -> None:
                 },
             }
         },
+        "data_quality": {"tests": []},
     }
 
     result = build_all_constructed_source_periods(gap_filling_config)
@@ -191,6 +194,7 @@ def test_match_total_scaling_adds_auxiliary_periods() -> None:
                 }
             }
         },
+        "data_quality": {"tests": []},
     }
 
     result = build_all_constructed_source_periods(gap_filling_config)
@@ -341,3 +345,70 @@ def test_auxiliary_temporal_filter_rejects_coverage_gap() -> None:
     assert "AAA" in message
     assert "2019-01-01T00:00:00+00:00" in message
     assert "2019-02-01T00:00:00+00:00" in message
+
+
+def test_build_data_quality_tests_preserves_test_order() -> None:
+    """Check data-quality test execution order is preserved."""
+    config = {
+        "tests": [
+            {"name": "first", "method": "range"},
+            {"name": "second", "method": "flatline"},
+        ]
+    }
+
+    result = build_data_quality_tests(config)
+
+    assert [test["name"] for test in result] == ["first", "second"]
+
+
+def test_build_data_quality_tests_translates_countries_to_contexts() -> None:
+    """Translate electricity-demand countries to generic T-Clean contexts."""
+    config = {
+        "tests": [
+            {
+                "name": "country_range",
+                "method": "range",
+                "countries": ["ALB", "MNE"],
+                "minimum": {
+                    "value_mode": "fixed",
+                    "value": 0,
+                },
+            }
+        ]
+    }
+
+    result = build_data_quality_tests(config)
+
+    assert result == [
+        {
+            "name": "country_range",
+            "method": "range",
+            "contexts": ["ALB", "MNE"],
+            "minimum": {
+                "value_mode": "fixed",
+                "value": 0,
+            },
+        }
+    ]
+
+
+def test_build_data_quality_tests_preserves_sources() -> None:
+    """Preserve configured T-Clean source selectors."""
+    config = {
+        "tests": [
+            {
+                "name": "power_statistics_range",
+                "method": "range",
+                "sources": ["entsoe_power_statistics"],
+                "minimum": {
+                    "value_mode": "fixed",
+                    "value": 0,
+                },
+            }
+        ]
+    }
+
+    result = build_data_quality_tests(config)
+
+    assert result[0]["sources"] == ["entsoe_power_statistics"]
+

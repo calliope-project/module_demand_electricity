@@ -49,7 +49,55 @@ $defs:
     description: >
       ISO alpha-3 country code.
 
+    # ---------------------------------------------------------------------------
+  # Data-quality tests
+  # ---------------------------------------------------------------------------
 
+  data_quality_test:
+    type: object
+    description: >
+      Named data-quality test applied to electricity-demand source data.
+      Method-specific parameters are validated by T-Clean.
+
+    properties:
+      name:
+        type: string
+        pattern: '^[a-z0-9_]+$'
+        description: >
+          Unique identifier for this configured data-quality test.
+
+      method:
+        type: string
+        minLength: 1
+        description: >
+          T-Clean data-quality evaluation method.
+
+      countries:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          $ref: "#/$defs/country_code"
+        description: >
+          Optional electricity-demand countries to which this test applies.
+          These are translated to T-Clean contexts.
+
+      sources:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+        description: >
+          Optional electricity-demand sources to which this test applies.
+
+      contexts: false
+
+    required:
+      - name
+      - method
+
+    additionalProperties: true
   # ---------------------------------------------------------------------------
   # Basic gap-filling rules
   # ---------------------------------------------------------------------------
@@ -428,6 +476,24 @@ properties:
     items:
       type: string
 
+  data_quality:
+    type: object
+    description: >
+      Data-quality tests applied to electricity-demand source data.
+      Test methods and method-specific parameters are validated by T-Clean.
+
+    properties:
+      tests:
+        type: array
+        items:
+          $ref: "#/$defs/data_quality_test"
+        description: >
+          Ordered data-quality tests. Tests are evaluated in listed order.
+
+    required:
+      - tests
+
+    additionalProperties: false
 
   gap_filling:
     type: object
@@ -513,5 +579,6 @@ required:
   - temporal_scope
   - load_sources
   - gap_filling
+  - data_quality
 
 additionalProperties: false

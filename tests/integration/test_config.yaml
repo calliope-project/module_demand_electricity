@@ -177,3 +177,6 @@ integration_test:
           end: "2020-01-01 03:00"
           scope: overwrite
           source: alb_external_test
+
+  data_quality:
+    tests: []

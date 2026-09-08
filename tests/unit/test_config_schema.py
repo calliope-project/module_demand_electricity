@@ -48,6 +48,7 @@ def test_advanced_mode_allows_no_sources_or_rules() -> None:
                 "rules": [],
             },
         },
+        "data_quality": {"tests": []},
     }
     errors = _validate(config)
     assert not errors, "\n".join(_format_validation_error(error) for error in errors)
@@ -83,6 +84,7 @@ def _advanced_config_with_scaling(scaling: dict) -> dict:
                 "rules": [],
             },
         },
+        "data_quality": {"tests": []},
     }
 
 
@@ -169,3 +171,50 @@ def test_constructed_source_rejects_unknown_scaling_method() -> None:
     config = _advanced_config_with_scaling({"method": "something_else"})
 
     assert _validate(config)
+
+
+def _config_with_data_quality(data_quality: dict) -> dict:
+    """Return a minimal valid config with the supplied data-quality section."""
+    return {
+        "temporal_scope": {
+            "start": "2021-01-01",
+            "end": "2022-01-01",
+            "frequency": "1h",
+        },
+        "load_sources": ["entsoe"],
+        "data_quality": data_quality,
+        "gap_filling": {
+            "mode": "off",
+            "basic": {"rules": []},
+            "advanced": {
+                "auxiliary_data": {
+                    "basic_cleaning": {"enabled": True},
+                },
+                "sources": {},
+                "rules": [],
+            },
+        },
+    }
+
+def test_data_quality_allows_no_tests() -> None:
+    """Check data-quality configuration may contain no tests."""
+    config = _config_with_data_quality({"tests": []})
+
+    assert not _validate(config)
+
+def test_data_quality_rejects_contexts_selector() -> None:
+    """Require module-facing country terminology instead of T-Clean contexts."""
+    config = _config_with_data_quality(
+        {
+            "tests": [
+                {
+                    "name": "example_range",
+                    "method": "range",
+                    "contexts": ["ALB"],
+                }
+            ]
+        }
+    )
+
+    assert _validate(config)
+

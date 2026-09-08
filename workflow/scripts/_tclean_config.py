@@ -22,6 +22,24 @@ def build_time_grid(temporal_scope: Mapping[str, Any]) -> TimeGrid:
     )
 
 
+def build_data_quality_tests(
+    data_quality_config: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    """Translate module data-quality configuration to T-Clean tests."""
+    tests: list[dict[str, Any]] = []
+
+    for configured_test in data_quality_config["tests"]:
+        test = dict(configured_test)
+
+        countries = test.pop("countries", None)
+        if countries is not None:
+            test["contexts"] = list(countries)
+
+        tests.append(test)
+
+    return tests
+
+
 def build_basic_rules(gap_filling_config: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Return configured basic-cleaning rules for T-Clean."""
     if gap_filling_config["mode"] == "off":

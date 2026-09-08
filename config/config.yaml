@@ -175,3 +175,6 @@ gap_filling:
         end: "2017-01-01 03:00"
         scope: overwrite
         source: alb_external_test
+
+data_quality:
+  tests: []
