@@ -11,10 +11,12 @@ from _tclean_config import (
     build_advanced_rules,
     build_basic_rules,
     build_constructed_source_periods,
+    build_data_quality_tests,
     build_scaling_source_periods,
     build_time_grid,
 )
 from tclean import TimeGrid
+from tclean.data_quality import validate_quality_tests
 from tclean.gap_filling import validate_basic_rules
 
 if TYPE_CHECKING:
@@ -35,6 +37,14 @@ def validate_gap_filling_config_semantics(config: Mapping[str, Any]) -> None:
     _validate_basic_config(gap_filling, grid=grid)
 
     _validate_advanced_config(gap_filling, grid=grid)
+
+
+def validate_data_quality_config_semantics(config: Mapping[str, Any]) -> None:
+    """Validate data-quality configuration semantics."""
+    grid = build_time_grid(config["temporal_scope"])
+    tests = build_data_quality_tests(config["data_quality"])
+
+    validate_quality_tests(tests, grid=grid)
 
 
 def config_hash(config: Mapping[str, Any]) -> str:
@@ -198,6 +208,9 @@ if __name__ == "__main__":
 
     if validation_kind == "temporal":
         validate_temporal_config_semantics(validation_config)
+
+    elif validation_kind == "data_quality":
+        validate_data_quality_config_semantics(validation_config)
 
     elif validation_kind == "gap_filling":
         validate_gap_filling_config_semantics(validation_config)

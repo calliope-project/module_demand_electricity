@@ -38,6 +38,25 @@ rule validate_gap_filling_config_semantics:
         "../scripts/validate_config.py"
 
 
+rule validate_data_quality_config_semantics:
+    output:
+        "<resources>/automatic/data_quality_config_validation.json",
+    log:
+        "<logs>/validate_data_quality_config_semantics.log",
+    conda:
+        "../envs/module.yaml"
+    params:
+        validation_kind="data_quality",
+        validation_config={
+            "temporal_scope": config["temporal_scope"],
+            "data_quality": config["data_quality"],
+        },
+    message:
+        "Validate data_quality configuration semantics."
+    script:
+        "../scripts/validate_config.py"
+
+
 checkpoint plan_target_data:
     input:
         shapes="<shapes>",
