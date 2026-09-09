@@ -24,6 +24,7 @@ def plot_national_profiles(df: pd.DataFrame):
     n_profiles = df.shape[1]
 
     fig, axs = plt.subplots(1, n_profiles, figsize=(17, 6))
+    axs = np.atleast_1d(axs).ravel()
     fig.subplots_adjust(wspace=0)
 
     for ax, column in zip(axs, profiles_GW.columns):
@@ -55,7 +56,7 @@ def plot_national_profiles(df: pd.DataFrame):
         ax.set_xticklabels(["", np.round(val_max, 1)])
         ax.title.set_text(column)
 
-    for ax in axs.flatten()[1:]:
+    for ax in axs[1:]:
         ax.set_yticks([])
 
     axs[0].set_ylabel("Time")

@@ -1,58 +1,97 @@
-"""Rules to used to download automatic resource files."""
+"""Rules used for generic automatic resources and validation."""
 
 
-rule download_load_entsoe_api:
-    input:
-        token_entsoe="<token_entsoe>",
+rule validate_temporal_config_semantics:
     output:
-        load="<resources>/automatic/load_entsoe_api.parquet",
+        "<resources>/automatic/temporal_config_validation.json",
     log:
-        "<logs>/download_load_entsoe_api.log",
-    localrule: True
+        "<logs>/validate_temporal_config_semantics.log",
     conda:
         "../envs/module.yaml"
     params:
-        country_codes_entsoe=internal["load_entsoe_api"]["countries"],
+        validation_kind="temporal",
+        validation_config={
+            "temporal_scope": config["temporal_scope"],
+        },
     message:
-        "Download electricity load from ENTSOE."
+        "Validate temporal configuration semantics."
     script:
-        "../scripts/download_load_entsoe_api.py"
+        "../scripts/validate_config.py"
 
 
-rule download_load_entsoe_opsd:
+rule validate_gap_filling_config_semantics:
     output:
-        load="<resources>/automatic/load_entsoe_opsd.csv",
+        "<resources>/automatic/gap_filling_config_validation.json",
     log:
-        "<logs>/download_load_entsoe_opsd.log",
-    localrule: True
+        "<logs>/validate_gap_filling_config_semantics.log",
     conda:
         "../envs/module.yaml"
     params:
-        url_load=internal["resources"]["automatic"]["load_entsoe_opsd"],
+        validation_kind="gap_filling",
+        validation_config={
+            "temporal_scope": config["temporal_scope"],
+            "gap_filling": config["gap_filling"],
+        },
     message:
-        "Download load profiles from Open Power System Data (OPSD)."
-    shell:
-        """
-        curl -sSLo {output.load:q} {params.url_load:q}
-        """
+        "Validate gap-filling configuration semantics."
+    script:
+        "../scripts/validate_config.py"
+
+
+rule validate_data_quality_config_semantics:
+    output:
+        "<resources>/automatic/data_quality_config_validation.json",
+    log:
+        "<logs>/validate_data_quality_config_semantics.log",
+    conda:
+        "../envs/module.yaml"
+    params:
+        validation_kind="data_quality",
+        validation_config={
+            "temporal_scope": config["temporal_scope"],
+            "data_quality": config["data_quality"],
+        },
+    message:
+        "Validate data_quality configuration semantics."
+    script:
+        "../scripts/validate_config.py"
+
+
+checkpoint plan_target_data:
+    input:
+        shapes="<shapes>",
+        temporal_validation=("<resources>/automatic/temporal_config_validation.json"),
+    output:
+        plan=("<resources>/automatic/{shape}/target_data_plan.json"),
+    log:
+        "<logs>/{shape}/plan_target_data.log",
+    conda:
+        "../envs/module.yaml"
+    params:
+        source_names=config["load_sources"],
+        source_registry=SOURCE_REGISTRY,
+        temporal_scope=config["temporal_scope"],
+    message:
+        "Plan target electricity-demand data acquisition."
+    script:
+        "../scripts/plan_target_data.py"
 
 
 rule download_population:
     output:
-        population="<resources>/automatic/population.zip",
+        population=update("<resources>/automatic/population.zip"),
     log:
         "<logs>/download_population.log",
     localrule: True
     conda:
         "../envs/module.yaml"
     params:
-        url_population=internal["resources"]["automatic"]["population"],
+        url=internal["resources"]["automatic"]["population"],
+        expected_member=internal["resources"]["automatic"]["population_tif"],
     message:
         "Download population data."
-    shell:
-        """
-        curl -sSLo {output.population:q} {params.url_population:q}
-        """
+    script:
+        "../scripts/download_population.py"
 
 
 rule unzip_population:

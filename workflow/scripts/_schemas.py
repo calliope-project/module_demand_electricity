@@ -2,20 +2,17 @@
 
 # ruff: noqa: UP007
 import pandas as pd
-import yaml
 from pandera.pandas import DataFrameModel, Field
 from pandera.typing.geopandas import GeoSeries
 from pandera.typing.pandas import Series
 
 
-def read_yaml(path):
-    """Read a YAML file."""
-    with open(path) as file:
-        return yaml.safe_load(file)
+class OPSDLoad(DataFrameModel):
+    """OPSD Download Class."""
 
-
-class LoadENTSOE(DataFrameModel):
     class Config:
+        """OPSD Config class."""
+
         coerce = True
         strict = False
 
@@ -32,7 +29,11 @@ class LoadENTSOE(DataFrameModel):
 
 
 class Shapes(DataFrameModel):
+    """Shapes Class."""
+
     class Config:
+        """Shape config class."""
+
         coerce = True
         strict = False
 

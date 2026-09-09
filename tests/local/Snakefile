@@ -1,0 +1,35 @@
+# Emulate a user configuring the module.
+configfile: workflow.source_path("./local_test_config.yaml")
+
+
+# Import the module and configure it.
+# `snakefile:` specifies the module. It can use file paths and special github(...) / gitlab(...) markers
+# `pathvars:` re-wires the location of user resources, intermediary module files, and module results.
+module module_demand_electricity:
+    pathvars:
+        shapes="../../resources/user/{shape}/shapes.parquet",
+        token_entsoe="../../resources/user/token_entsoe.txt",
+        external_profiles="../../resources/user/external_profiles",
+        # test the re-routing of resources, results and logs
+        resources="resources/module/resources",
+        results="resources/module/results",
+        logs="resources/module/logs",
+    snakefile:
+        "../../workflow/Snakefile"
+    config:
+        config["integration_test"]
+
+
+# rename all module rules with a prefix, to avoid naming conflicts.
+use rule * from module_demand_electricity as module_demand_electricity_*
+
+
+# Montenegro test case
+rule local_end_to_end_testing:
+    default_target: True
+    input:
+        "resources/module/results/EUROPE_L_C34_ADM1/demand_electricity_MW.parquet",
+        "resources/module/results/EUROPE_L_C34_ADM1/load_cleaning_timeline.pdf",
+        "resources/module/results/EUROPE_L_C34_ADM1/load_cleaning_summary.html",
+    message:
+        "A comprehensive e2e test case for 34 European countries"

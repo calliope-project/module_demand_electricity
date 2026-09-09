@@ -1,32 +1,585 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
-description: "Schema for user-provided configuration files."
 
-$defs:
-  iso_date:
-    type: string
-    format: date
-    pattern: '^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$'
-    description: "Date in ISO 8601 format (YYYY-MM-DD)."
+description: >
+  Schema for user-provided configuration files for the electricity-demand
+  module.
 
 type: object
-additionalProperties: false
+
+$defs:
+
+  # ---------------------------------------------------------------------------
+  # General temporal values
+  # ---------------------------------------------------------------------------
+
+  duration:
+    type: string
+    pattern: '^[1-9]\d*(h|d|w)$'
+    description: >
+      Positive duration expressed as an integer followed by h, d, or w,
+      for example 3h, 7d, or 1w.
+
+  signed_duration:
+    type: string
+    pattern: '^-?[1-9]\d*(h|d|w)$'
+    description: >
+      Non-zero signed duration such as -168h, 168h, -7d, or 1w.
+
+  signed_durations:
+    type: array
+    minItems: 2
+    uniqueItems: true
+    items:
+      $ref: "#/$defs/signed_duration"
+    description: >
+      Two or more unique, non-zero signed durations identifying the
+      source periods to average.
+
+  timestamp:
+    type: string
+    pattern: '^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])([ T]([01]\d|2[0-3]):[0-5]\d)?$'
+    description: >
+      Timestamp interpreted as UTC. May be written as YYYY-MM-DD for
+      midnight or as YYYY-MM-DD HH:MM. Temporal alignment with the
+      configured time grid is validated semantically.
+
+  country_code:
+    type: string
+    pattern: '^[A-Z]{3}$'
+    description: >
+      ISO alpha-3 country code.
+
+    # ---------------------------------------------------------------------------
+  # Data-quality tests
+  # ---------------------------------------------------------------------------
+
+  data_quality_test:
+    type: object
+    description: >
+      Named data-quality test applied to electricity-demand source data.
+      Method-specific parameters are validated by T-Clean.
+
+    properties:
+      name:
+        type: string
+        pattern: '^[a-z0-9_]+$'
+        description: >
+          Unique identifier for this configured data-quality test.
+
+      method:
+        type: string
+        minLength: 1
+        description: >
+          T-Clean data-quality evaluation method.
+
+      countries:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          $ref: "#/$defs/country_code"
+        description: >
+          Optional electricity-demand countries to which this test applies.
+          These are translated to T-Clean contexts.
+
+      sources:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+        description: >
+          Optional electricity-demand sources to which this test applies.
+
+      contexts:
+        not: {}
+
+    required:
+      - name
+      - method
+
+    additionalProperties: true
+  # ---------------------------------------------------------------------------
+  # Basic gap-filling rules
+  # ---------------------------------------------------------------------------
+
+  gap_filling_rule_base:
+    type: object
+    properties:
+      name:
+        type: string
+        pattern: '^[a-z0-9_]+$'
+        description: >
+          Unique identifier for this configured gap-filling rule. Used for
+          provenance reporting and cleaning-method ranking.
+
+      method:
+        type: string
+        description: >
+          Gap-filling method applied by this rule.
+
+    required:
+      - name
+      - method
+
+  linear_interpolation_rule:
+    allOf:
+      - $ref: "#/$defs/gap_filling_rule_base"
+
+      - type: object
+        properties:
+          method:
+            const: linear_interpolation
+
+          max_gap:
+            $ref: "#/$defs/duration"
+
+        required:
+          - max_gap
+
+    unevaluatedProperties: false
+
+  average_periods_rule:
+    allOf:
+      - $ref: "#/$defs/gap_filling_rule_base"
+
+      - type: object
+        properties:
+          method:
+            const: average_periods
+
+          max_gap:
+            $ref: "#/$defs/duration"
+
+          source_offsets:
+            $ref: "#/$defs/signed_durations"
+
+        required:
+          - max_gap
+          - source_offsets
+
+    unevaluatedProperties: false
+
+  copy_periods_rule:
+    allOf:
+      - $ref: "#/$defs/gap_filling_rule_base"
+
+      - type: object
+        properties:
+          method:
+            const: copy_periods
+
+          max_gap:
+            $ref: "#/$defs/duration"
+
+          source_offset:
+            $ref: "#/$defs/signed_duration"
+
+          require_complete_source:
+            type: boolean
+            description: >
+              Require all source-period values needed for a gap to be
+              available before filling that gap.
+
+        required:
+          - max_gap
+          - source_offset
+
+    unevaluatedProperties: false
+
+  gap_filling_rule:
+    oneOf:
+      - $ref: "#/$defs/linear_interpolation_rule"
+      - $ref: "#/$defs/average_periods_rule"
+      - $ref: "#/$defs/copy_periods_rule"
+
+
+  # ---------------------------------------------------------------------------
+  # Advanced source definitions
+  #
+  # These describe HOW an advanced replacement profile is obtained.
+  # They do not describe where or when that profile is applied.
+  # ---------------------------------------------------------------------------
+
+  source_period:
+    type: object
+    properties:
+      country:
+        $ref: "#/$defs/country_code"
+
+      start:
+        $ref: "#/$defs/timestamp"
+
+      end:
+        $ref: "#/$defs/timestamp"
+
+      weight:
+        type: number
+        exclusiveMinimum: 0
+        description: >
+          Relative weight assigned to this source period when multiple
+          profiles are combined using a weighted mean.
+
+    required:
+      - country
+      - start
+      - end
+      - weight
+
+    additionalProperties: false
+
+  source_periods:
+    type: array
+    minItems: 1
+    items:
+      $ref: "#/$defs/source_period"
+    description: >
+      One or more country-period profiles used to construct an advanced
+      source.
+
+  constructed_source_scaling:
+    oneOf:
+
+      - type: object
+        properties:
+          method:
+            const: match_total
+
+          periods:
+            $ref: "#/$defs/source_periods"
+            description: >
+              Reference periods whose weighted-mean total determines the
+              total of the constructed profile.
+
+        required:
+          - method
+          - periods
+
+        additionalProperties: false
+
+      - type: object
+        properties:
+          method:
+            const: normalise_mean
+
+        required:
+          - method
+
+        additionalProperties: false
+
+      - type: object
+        properties:
+          method:
+            const: normalise_max
+
+        required:
+          - method
+
+        additionalProperties: false
+
+  construct_from_sources_definition:
+    type: object
+    properties:
+      method:
+        const: construct_from_sources
+
+      periods:
+        $ref: "#/$defs/source_periods"
+        description: >
+          Country-period profiles used to construct the source profile.
+
+      scaling:
+        $ref: "#/$defs/constructed_source_scaling"
+
+    required:
+      - method
+      - periods
+
+    additionalProperties: false
+
+  external_profile_definition:
+    type: object
+    properties:
+      method:
+        const: external_profile
+
+      file:
+        type: string
+        minLength: 1
+        pattern: '^[^/\\]+\.csv$'
+        description: >
+          Filename of the format "<filename>.csv" of a local CSV containing timestamp and value columns for
+          the external profile. The file is resolved relative to the external-profiles pathvar.
+
+    required:
+      - method
+      - file
+
+    additionalProperties: false
+
+  advanced_source_definition:
+    oneOf:
+      - $ref: "#/$defs/construct_from_sources_definition"
+      - $ref: "#/$defs/external_profile_definition"
+
+
+  # ---------------------------------------------------------------------------
+  # Advanced application rules
+  #
+  # These describe WHERE and WHEN an advanced source is applied.
+  # ---------------------------------------------------------------------------
+
+  advanced_rule_base:
+    type: object
+    properties:
+      name:
+        type: string
+        pattern: '^[a-z0-9_]+$'
+        description: >
+          Unique identifier for this advanced cleaning rule.
+
+      country:
+        $ref: "#/$defs/country_code"
+
+      start:
+        $ref: "#/$defs/timestamp"
+
+      end:
+        $ref: "#/$defs/timestamp"
+
+      scope:
+        type: string
+        enum:
+          - fill_gaps
+          - overwrite
+        description: >
+          Whether the rule fills only missing values within the target
+          period or replaces all values in that period.
+
+    required:
+      - name
+      - country
+      - start
+      - end
+      - scope
+
+  sourced_advanced_rule:
+    allOf:
+      - $ref: "#/$defs/advanced_rule_base"
+
+      - type: object
+        properties:
+          source:
+            type: string
+            pattern: '^[a-z0-9_]+$'
+            description: >
+              Name of the advanced source definition used by this rule.
+
+        required:
+          - source
+
+    unevaluatedProperties: false
+
+  leave_missing_rule:
+    allOf:
+      - $ref: "#/$defs/advanced_rule_base"
+
+      - type: object
+        properties:
+          method:
+            const: leave_missing
+            description: >
+              Explicitly leave matching missing values unresolved.
+
+        required:
+          - method
+
+    unevaluatedProperties: false
+
+  advanced_rule:
+    oneOf:
+      - $ref: "#/$defs/sourced_advanced_rule"
+      - $ref: "#/$defs/leave_missing_rule"
+
+
+  # ---------------------------------------------------------------------------
+  # Auxiliary-data handling
+  # ---------------------------------------------------------------------------
+
+  auxiliary_basic_cleaning:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+        default: true
+        description: >
+          Apply the configured basic gap-filling rules to acquired
+          auxiliary data before it is used to construct an advanced
+          profile.
+
+    required:
+      - enabled
+
+    additionalProperties: false
+
+  auxiliary_data:
+    type: object
+    properties:
+      basic_cleaning:
+        $ref: "#/$defs/auxiliary_basic_cleaning"
+
+    required:
+      - basic_cleaning
+
+    additionalProperties: false
+
+
+# =============================================================================
+# Top-level module configuration
+# =============================================================================
+
 properties:
+
   temporal_scope:
     type: object
-    description: "The temporal scope of the simulation."
+    description: >
+      End-exclusive temporal scope and frequency of the electricity-demand
+      time series. The start timestamp anchors the phase of the time grid.
+
     properties:
       start:
-        $ref: "#/$defs/iso_date"
-        description: "Start date the simulation in ISO 8601 format (YYYY-MM-DD)."
+        $ref: "#/$defs/timestamp"
+
       end:
-        $ref: "#/$defs/iso_date"
-        description: "End date the simulation in ISO 8601 format (YYYY-MM-DD)."
+        $ref: "#/$defs/timestamp"
+
+      frequency:
+        $ref: "#/$defs/duration"
+
     required:
       - start
       - end
-  use_load:
-    type: string
-    description: "The source of load data to use in the simulation. Options are 'entsoe_api' or 'entsoe_opsd'."
-    enum:
-      - "entsoe_api"
-      - "entsoe_opsd"
+      - frequency
+
+    additionalProperties: false
+
+
+  # Load Sources are validated against ./source_registry.yaml
+  load_sources:
+    type: array
+    description: >
+      Ordered electricity-demand sources. Sources listed earlier have
+      higher priority when more than one source supplies the same value.
+
+    minItems: 1
+    uniqueItems: true
+
+    items:
+      type: string
+
+  data_quality:
+    type: object
+    description: >
+      Data-quality tests applied to electricity-demand source data.
+      Test methods and method-specific parameters are validated by T-Clean.
+
+    properties:
+      tests:
+        type: array
+        items:
+          $ref: "#/$defs/data_quality_test"
+        description: >
+          Ordered data-quality tests. Tests are evaluated in listed order.
+
+    required:
+      - tests
+
+    additionalProperties: false
+
+  gap_filling:
+    type: object
+    description: >
+      Gap-filling configuration. Basic rules are applied in listed order.
+      Advanced mode additionally permits named constructed or external
+      sources to be applied using explicit country-period rules.
+
+    properties:
+
+      mode:
+        type: string
+        enum:
+          - "off"
+          - basic
+          - advanced
+        description: >
+          Gap-filling mode. 'off' disables gap filling, 'basic' applies
+          configured deterministic rules, and 'advanced' additionally
+          enables advanced source planning and application.
+
+
+      basic:
+        type: object
+        properties:
+          rules:
+            type: array
+            items:
+              $ref: "#/$defs/gap_filling_rule"
+            description: >
+              Ordered deterministic gap-filling rules.
+
+        required:
+          - rules
+
+        additionalProperties: false
+
+
+      advanced:
+        type: object
+        properties:
+
+          auxiliary_data:
+            $ref: "#/$defs/auxiliary_data"
+
+          sources:
+            type: object
+            description: >
+              Named definitions of profiles that can be used by advanced
+              cleaning rules.
+
+            propertyNames:
+              pattern: '^[a-z0-9_]+$'
+
+            additionalProperties:
+              $ref: "#/$defs/advanced_source_definition"
+
+          rules:
+            type: array
+            description: >
+              Ordered advanced country-period cleaning rules.
+
+            items:
+              $ref: "#/$defs/advanced_rule"
+
+        required:
+          - auxiliary_data
+          - sources
+          - rules
+
+        additionalProperties: false
+
+
+    required:
+      - mode
+      - basic
+      - advanced
+
+    additionalProperties: false
+
+
+required:
+  - temporal_scope
+  - load_sources
+  - gap_filling
+  - data_quality
+
+additionalProperties: false

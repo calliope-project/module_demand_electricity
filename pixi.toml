@@ -4,7 +4,10 @@ authors = ["See AUTHORS file"]
 description = "This module prepares electricity demand timeseries for Europe at arbitrary resolution"
 license = "Apache-2.0"
 readme = "README.md"
-channels = ["conda-forge", "bioconda"]
+channels = [
+  "conda-forge",
+  "bioconda",
+]
 platforms = ["win-64", "linux-64", "osx-arm64"]
 homepage = "https://www.modelblocks.org/"
 
@@ -15,7 +18,7 @@ ipdb = ">=0.13.13"
 ipykernel = ">=6.29.5"
 jsonschema = ">=4.0.0"
 mypy = ">=1.15.0"
-pytest = ">=8.3.5"
+pytest = ">=8.3.5"  # integration/development tests
 python = ">=3.12"
 ruff = ">=0.9.9"
 snakefmt = ">=0.10.2"
@@ -32,13 +35,28 @@ entsoe-py = ">=0.8.0"
 dask = ">=2026.6.0"
 numpy = ">=1.26.4"
 gregor = ">=0.1.0"
+cmap = ">=0.7.2"
+pandas = ">=3.0.3"
+geopandas = ">=1.1.4"
+matplotlib = ">=3.10.9"
+rioxarray = ">=0.20.0"
+pandera = ">=0.31.1"
+pyyaml = ">=6.0.3"
+tclean = ">=0.2.1"
+
+[feature.test-module.dependencies]
+pytest = ">=8.3.5"
+jsonschema = ">=4.0.0"
 
 [environments]
 module = { features = ["module"], no-default-feature = true }
+test = { features = ["module", "test-module"], no-default-feature = true }
+
+[feature.test-module.tasks]
+test-unit = "pytest tests/unit"
 
 [tasks]
 test-integration = {cmd = "pytest tests/integration_test.py"}
-
 
 [tasks.export-snakemake-env]
 description = "Export one Pixi environment as Snakemake-compatible conda files"

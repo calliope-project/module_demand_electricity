@@ -84,7 +84,7 @@ def main(
     map_raster(countries, demand_raster)
     plt.savefig(plot_raster, bbox_inches="tight")
 
-    plot_national_profiles(demand)
+    plot_national_profiles(demand_filtered)
     plt.savefig(plot_profiles, bbox_inches="tight", dpi=110)
 
 

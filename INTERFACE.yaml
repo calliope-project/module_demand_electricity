@@ -5,26 +5,35 @@ pathvars:
   snakemake_defaults:
     logs:
       default: "<logs>"
-      description: location of snakemake log files.
+      description: "Location of Snakemake log files."
     resources:
       default: "<resources>"
-      description: "location of module resource (input) files."
+      description: "Location of module resource (input) files."
     results:
       default: "<results>"
-      description: "location of module result (output) files."
+      description: "Location of module result (output) files."
+
   user_resources:
     token_entsoe:
       default: "<resources>/user/token_entsoe.txt"
       description: "User token for ENTSO-E API access."
+
     shapes:
       default: "<resources>/user/{shape}/shapes.parquet"
       description: >
-        Shapes to aggregate the output data to.
-        IMPORTANT: they must add up to the full spatial extent of the country.
-        The module's processing requires it.
+        Target shapes used to spatially aggregate electricity demand.
+        The supplied shapes must collectively cover the full spatial extent
+        of the corresponding country.
+
+    external_profiles:
+      default: "<resources>/user/external_profiles"
+      description: >
+        Directory of user-provided .csv to feed into advanced tclean gap-filling.
+
   results:
     demand_electricity_MW:
       default: "<results>/{shape}/demand_electricity_MW.parquet"
-      description: Electricity demand profile per custom shape in units of MW.
+      description: "Hourly electricity demand per custom shape, in MW."
+
 wildcards:
-  shape: Name of the custom shape is a wildcard to allow multiple outputs based on different shapes.
+  shape: "Name of the custom target shape set. This wildcard allows multiple outputs for different shape definitions."
