@@ -1130,7 +1130,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xyzservices-2026.9.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zict-3.0.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.0-pyh129be3f_0.conda
+      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.1-pyh129be3f_0.conda
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-3.0.1-pyhecae5ae_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
@@ -1375,7 +1375,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.0-pyh129be3f_0.conda
+      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.1-pyh129be3f_0.conda
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-3.0.1-pyhecae5ae_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
@@ -1624,7 +1624,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/zlib-1.3.2-hfd05255_3.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zlib-ng-2.3.3-h0261ad2_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
-      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.0-pyh129be3f_0.conda
+      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.1-pyh129be3f_0.conda
   test:
     channels:
     - url: https://conda.anaconda.org/ddahawkins/label/dev/
@@ -1939,7 +1939,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xyzservices-2026.9.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zict-3.0.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
-      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.0-pyh129be3f_0.conda
+      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.1-pyh129be3f_0.conda
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-3.0.1-pyhecae5ae_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
@@ -2195,7 +2195,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.0-pyh129be3f_0.conda
+      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.1-pyh129be3f_0.conda
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-3.0.1-pyhecae5ae_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.8.0-pyhd8ed1ab_0.conda
@@ -2455,7 +2455,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/zlib-1.3.2-hfd05255_3.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zlib-ng-2.3.3-h0261ad2_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
-      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.0-pyh129be3f_0.conda
+      - conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.1-pyh129be3f_0.conda
 packages:
 - conda: https://conda.anaconda.org/bioconda/noarch/snakefmt-2.0.3-pyhdfd78af_1.conda
   sha256: bc5d29e4fa22bf6f17f69c968ffba24967ec360fbb42f5fde5df5e5e2bbab6a9
@@ -16883,9 +16883,9 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 387535
   timestamp: 1786599623274
-- conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.0-pyh129be3f_0.conda
-  sha256: 8ffe74fb71692b082b46c94b3a7af2bc2f831a686a4d7bd1066409dda176d65c
-  md5: 86235f3d91aa02c8d629f225cbe93cf3
+- conda: https://conda.anaconda.org/ddahawkins/label/dev/noarch/tclean-0.2.1-pyh129be3f_0.conda
+  sha256: fb5696124a0f612c17140941a33b2f628ebf7112c19ee32508896924f5acadf8
+  md5: 94b960989bc00859320a84abe9f5df2d
   depends:
   - python >=3.12
   - pandas >=3.0.3
@@ -16893,5 +16893,5 @@ packages:
   - scipy >=1.16.1
   - python
   license: MIT
-  size: 71113
-  timestamp: 1788872612273
+  size: 68726
+  timestamp: 1788952697985
