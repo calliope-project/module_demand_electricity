@@ -57,12 +57,11 @@ def main(
         failures, demand=demand, plot_start=plot_start, plot_end=plot_end
     )
 
-    if not failures.empty:
-        failures["display_width_px"] = (
-            ((failures["end"] - failures["start"]) / time_step)
-            / len(demand.index)
-            * PLOT_WIDTH_PX
-        )
+    failures["display_width_px"] = (
+        ((failures["end"] - failures["start"]) / time_step)
+        / len(demand.index)
+        * PLOT_WIDTH_PX
+    )
 
     method_colours = _build_method_colours(failures)
 
@@ -330,7 +329,7 @@ def _plot_page(
     """Create one stacked-context data-quality page."""
     panel_height_px = int(np.ceil(layout["end"].iloc[-1]))
 
-    legend_height_px = LEGEND_HEIGHT_PX if method_colours else 0
+    legend_height_px = LEGEND_HEIGHT_PX
 
     page_height_px = (
         PAGE_TOP_MARGIN_PX + panel_height_px + legend_height_px + PAGE_BOTTOM_MARGIN_PX
@@ -412,6 +411,16 @@ def _plot_page(
             fontsize=6.5,
             handlelength=2.0,
             columnspacing=1.0,
+        )
+    else:
+        figure.text(
+            0.5,
+            8 / page_height_px,
+            "No data-quality issues identified.",
+            ha="center",
+            va="bottom",
+            fontsize=6.5,
+            color="0.4",
         )
 
     return figure, axis
