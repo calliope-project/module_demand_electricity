@@ -1,6 +1,6 @@
 # Configuration
 
-This module is configured through `config/config.yaml`.
+This module is configured through `config/config.yaml`. Gap filling and data-quality evaluation both use tclean, while this document describes their Modelblocks-facing configuration.
 
 The configuration schema is intentionally strict: malformed or unsupported configuration should fail validation rather than silently falling back to defaults.
 
@@ -59,6 +59,92 @@ Available identifiers are:
 Sources are combined in the listed order. When more than one provider supplies a value for the same country and timestamp, the higher-priority provider is retained.
 
 The authoritative list of provider identifiers and source metadata is [`workflow/internal/source_registry.yaml`](../workflow/internal/source_registry.yaml). Its `temporal_scope` bounds use the same half-open `[start, end)` convention as the model time grid. An omitted bound means no restriction is declared in that direction, and omitted or empty `contexts` means no context restriction is declared.
+
+## Data quality
+
+Data-quality testing is configured separately from gap filling. Tests are diagnostic: they identify suspicious observations, profiles, or source disagreements and record evaluation limitations, but they do not change the processed demand values.
+
+The test definitions use the `tclean.data_quality` configuration contract. The module validates those definitions before the expensive evaluation step and then maps Modelblocks demand data into the named sources expected by tclean. Method-level fields, value specifications, failure semantics, and contextual-reference details are documented in tclean's `docs/data_quality.md`; this section focuses on the module-specific configuration behaviour.
+
+A representative configuration can contain tests such as:
+
+```yaml
+data_quality:
+  - name: non_negative
+    method: range
+    minimum:
+      value_mode: fixed
+      value: 0
+
+  - name: unusual_level
+    method: contextual_level
+    reference_orders:
+      - period: 7D
+        radius: 4
+      - period: 1Y
+        radius: 2
+    robust_deviation_threshold: 6
+
+  - name: source_disagreement
+    method: source_disagreement
+    difference_mode: relative
+    threshold:
+      value_mode: fixed
+      value: 0.1
+```
+
+The examples above illustrate the module shape rather than prescribing universally appropriate thresholds. Threshold choice remains a modelling decision and should be adapted to the target data and purpose of the quality check.
+
+### Data-quality sources
+
+The module supplies the following source names to tclean data-quality evaluation:
+
+- `processed_demand`: the combined national demand after the configured gap-filling stage. When `gap_filling.mode` is `"off"`, this is the combined but unfilled demand series;
+- each configured provider in `load_sources`, such as `entsoe`, `neso`, `entsoe_power_statistics`, or `opsd`, where that provider has prepared data for the run.
+
+For ordinary tests, omitting `sources` makes `processed_demand` the focal source by default. A test can explicitly select one or more available source names when a provider-specific diagnostic is required.
+
+`source_disagreement` deserves particular attention. In tclean, `sources` selects the **focal** source or sources to test; the other supplied sources remain available as peer evidence. In this module, the usual pattern is therefore to evaluate `processed_demand` against the underlying configured providers. For example:
+
+```yaml
+- name: source_disagreement
+  method: source_disagreement
+  sources:
+    - processed_demand
+  difference_mode: relative
+  threshold:
+    value_mode: fixed
+    value: 0.1
+```
+
+Because `processed_demand` is the module default focal source, the explicit `sources` selector can be omitted when that is the intended target. At each country/timestamp, tclean uses the available non-focal provider values as peers; missing provider coverage can therefore make some observations not evaluable without invalidating the configuration itself.
+
+### Countries and ordered tests
+
+The optional tclean `contexts` selector corresponds to the country contexts present in the prepared national-demand frames. It can be used to restrict a test to selected countries.
+
+Data-quality tests are ordered and names must be unique. Earlier failures can affect the eligible reference population of later reference-based tests. Tclean's `include_failed_periods_from` option can explicitly retain failures from named **preceding** tests when that is appropriate. Forward references are invalid.
+
+This ordering is especially relevant for derived thresholds and the contextual methods, where obviously invalid observations identified by an earlier test would otherwise contaminate later reference evidence.
+
+### Contextual tests and reference periods
+
+`contextual_level` and `contextual_profile` compare the focal demand with analogous historical observations or profiles defined by `reference_orders`. Fixed periods such as `7D` and calendar-aware periods such as `1Y` have distinct semantics; `1Y` is a calendar shift rather than a shorthand for `365D`.
+
+For the full reference-lattice, robust-deviation, predictive-probability, and profile-normalisation semantics, refer to tclean's data-quality documentation rather than duplicating those rules here.
+
+### Runtime
+
+Simple pointwise tests are generally quick. Reference-heavy tests can take longer because they construct and evaluate historical comparison sets, and `source_disagreement` must also align peer-provider observations. On long histories covering many countries, `contextual_level`, `contextual_profile`, and cross-source evaluation can take **a few minutes**. This is expected and is substantially different from an hours-long or stalled workflow.
+
+### Data-quality outputs
+
+The evaluation produces two structured tables:
+
+- `load_data_quality_failures.parquet`: contiguous periods where a configured test failed;
+- `load_data_quality_issues.parquet`: warnings and `not_evaluable` periods where valid configuration could not be fully evaluated from the available evidence.
+
+The workflow also produces a PDF data-quality diagnostic for visual inspection of failures on `processed_demand` as part of the normal module workflow.
 
 ## Gap filling
 
@@ -350,7 +436,7 @@ focused on individual configuration features.
 Configuration is checked in two layers:
 
 1. the YAML schema checks structure, permitted values, required fields, and basic types;
-2. semantic validation checks constraints that depend on relationships between fields, such as time-grid alignment, unique rule/source names, valid source references, and compatible advanced periods.
+2. semantic validation checks constraints that depend on relationships between fields, such as time-grid alignment, unique rule/source names, valid source references, compatible advanced periods, valid ordered data-quality tests, data-quality source selectors, and references to preceding quality-test names.
 
 Invalid configuration should be corrected at source rather than handled through silent fallbacks.
 

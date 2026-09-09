@@ -2,7 +2,7 @@
 
 This Modelblocks module prepares regular electricity-demand time series for European target regions. National demand observations from multiple providers are combined and cleaned on a user-defined time grid, then spatially disaggregated using population data and aggregated to user-provided shapes.
 
-Demand cleaning is performed with tclean, while this module remains responsible for electricity-demand providers, Modelblocks configuration, auxiliary-data acquisition, workflow orchestration, spatial disaggregation, and diagnostic outputs.
+Demand cleaning and configurable data-quality evaluation are performed with tclean, while this module remains responsible for electricity-demand providers, Modelblocks configuration, auxiliary-data acquisition, workflow orchestration, spatial disaggregation, and diagnostic outputs.
 
 <p align="center">
   <img src="./figures/readme_cleaning_timeline.jpg">
@@ -31,9 +31,10 @@ The main processing stages are:
 3. Combine available providers according to the configured source-priority order.
 4. Apply deterministic basic cleaning rules.
 5. In `advanced` mode, determine which configured advanced rules are active for the current countries and time grid, acquire any required auxiliary demand data, construct or read advanced profiles, and apply them.
-6. Finalise national demand together with cleaning provenance.
-7. Download and prepare gridded population data.
-8. Spatially disaggregate national demand using population weights and aggregate it to the user-provided target shapes.
+6. Evaluate any configured data-quality tests against the processed demand and available provider sources.
+7. Finalise national demand together with cleaning provenance and data-quality diagnostics.
+8. Download and prepare gridded population data.
+9. Spatially disaggregate national demand using population weights and aggregate it to the user-provided target shapes.
 
 A simplified representation is:
 
@@ -56,8 +57,12 @@ Basic cleaning
                        ▼                         │
                   advanced rules ────────────────┤
                                                  ▼
-                                      Final national demand
+                                      Processed national demand
                                           + provenance
+                                                 │
+                                                 ▼
+                                       Data-quality evaluation
+                                      (when tests are configured)
                                                  │
                                                  ▼
                                       Population-weighted
@@ -75,7 +80,8 @@ The key configuration groups are:
 
 - `temporal_scope`: grid start, grid end, and fixed frequency;
 - `load_sources`: demand-provider priority;
-- `gap_filling`: cleaning mode plus basic and advanced rules.
+- `gap_filling`: cleaning mode plus basic and advanced rules;
+- `data_quality`: ordered diagnostic tests applied to the processed demand and, where relevant, provider sources.
 
 See the [configuration README](./config/README.md), the [example configuration](./config/config.yaml), and the authoritative [configuration schema](./workflow/internal/config.schema.yaml).
 
@@ -140,6 +146,19 @@ Configured periods use half-open intervals, `[start, end)`.
 
 See [Configuration: Advanced gap filling](./config/README.md#advanced-gap-filling) for full examples.
 
+
+## Data-quality evaluation
+
+The module can run ordered data-quality tests after the configured gap-filling stage and before spatial disaggregation. Evaluation is diagnostic: it records anomalous periods and evaluation limitations but does **not** alter the processed demand series.
+
+Data-quality methods and statistical semantics are provided by `tclean.data_quality`. The module adds the electricity-demand-specific orchestration around those methods, including source naming, configuration validation, persistence of failures/issues, and diagnostic plotting. See [Configuration: Data quality](./config/README.md#data-quality) for the module-facing configuration contract; method-level threshold and reference semantics are documented in tclean's `docs/data_quality.md`.
+
+The module exposes `processed_demand` as the main focal data-quality source. It represents the combined demand after the configured gap-filling stage (or the combined series when gap filling is off). Prepared provider sources selected through `load_sources` are also supplied to data-quality evaluation where available. This is particularly useful for `source_disagreement`: the processed series can be evaluated as the focal source while the underlying providers act as peer evidence for the same country and timestamp.
+
+Tests are evaluated in configuration order. This matters for reference-based tests because failures from preceding tests can affect the reference observations available to later tests. Optional source and country selectors can narrow individual tests; omitting the source selector uses `processed_demand` as the module's focal source by default.
+
+Some tests are more computationally intensive than simple pointwise checks. In particular, `contextual_level`, `contextual_profile`, and cross-source comparison over long, multi-country histories can take a few minutes to evaluate. This is expected for large diagnostic runs; users should not assume that a several-minute data-quality rule is stalled simply because simpler cleaning rules complete much faster.
+
 ## Provenance and diagnostics
 
 The workflow retains cleaning provenance alongside national demand so observed values can be distinguished from values introduced by basic or advanced rules.
@@ -149,7 +168,10 @@ Important diagnostic outputs include:
 - **Gap report**: in `advanced` mode, provides a complete record of the contiguous gaps that remain after basic cleaning, including the affected country, start and end timestamps, gap duration, and whether the gap reaches a boundary of the requested time series. This report can be used to identify which periods still require attention and to inform the design of targeted advanced rules;
 - **Cleaning method**: the source or rule responsible for each output value;
 - **Cleaning-method rank**: numeric ordering used to represent cleaning provenance consistently;
-- **Cleaning timeline and summary**: visual and tabular diagnostics showing demand provenance and completeness through the raw, basic, and advanced cleaning stages.
+- **Cleaning timeline and summary**: visual and tabular diagnostics showing demand provenance and completeness through the raw, basic, and advanced cleaning stages;
+- **Data-quality failures**: structured periods where a configured test was evaluable and its failure criterion was met;
+- **Data-quality issues**: structured warnings or `not_evaluable` events describing limitations such as insufficient reference or peer data;
+- **Data-quality diagnostic plot**: a PDF diagnostic of configured failures on the processed demand, intended to make flagged periods easier to inspect.
 
 Together, these diagnostics are intended to make gap handling explicit rather than conceal unresolved data behind automatic imputation. A typical advanced workflow is therefore to run the basic cleaning stage, inspect the gap report to identify any remaining missing periods, and then configure advanced rules for gaps that require explicit reconstruction or replacement.
 
@@ -159,7 +181,7 @@ The module requires user-provided target shapes. A valid ENTSO-E API token is ad
 
 Advanced `external_profile` sources may reference user-provided CSV files.
 
-Intermediate provider data, cleaned national demand, provenance, execution plans, and auxiliary data are stored below the module resources path. Final regional electricity demand is written to the configured module results path.
+Intermediate provider data, cleaned national demand, provenance, execution plans, auxiliary data, and data-quality tables are stored below the module resources path. Data-quality evaluation writes `load_data_quality_failures.parquet` and `load_data_quality_issues.parquet` alongside the automatic demand resources. Final regional electricity demand is written to the configured module results path.
 
 Please consult [`INTERFACE.yaml`](./INTERFACE.yaml) for the module's formal input/output interface.
 
