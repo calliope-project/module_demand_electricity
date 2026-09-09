@@ -37,7 +37,7 @@ MARKER_LEVEL_SPACING_PX = 3
 
 # A failure must occupy at least this much rendered horizontal space
 # before an outlined interval box is useful.
-BOX_MIN_WIDTH_PX = 4
+BOX_MIN_WIDTH_PX = 1000
 
 
 def main(
