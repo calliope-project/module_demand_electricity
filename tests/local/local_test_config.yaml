@@ -202,7 +202,7 @@ integration_test:
       - name: flat_half_day
         method: flatline
         minimum_duration: 12h
-      
+
       - name: unusual_level
         method: contextual_level
         reference_orders:

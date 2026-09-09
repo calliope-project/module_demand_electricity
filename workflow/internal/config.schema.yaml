@@ -91,7 +91,7 @@ $defs:
         description: >
           Optional electricity-demand sources to which this test applies.
 
-      contexts: 
+      contexts:
         not: {}
 
     required:
