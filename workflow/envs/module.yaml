@@ -1,6 +1,5 @@
 name: module
 channels:
-- https://conda.anaconda.org/ddahawkins/label/dev
 - conda-forge
 - bioconda
 - nodefaults
