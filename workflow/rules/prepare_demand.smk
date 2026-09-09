@@ -51,6 +51,7 @@ rule demand_electricity_polygon:
         demand_raster="<resources>/automatic/{shape}/demand_electricity_raster.tif",
         demand_profiles="<resources>/automatic/{shape}/demand_electricity_countries_profiles.parquet",
         cleaning_timeline="<results>/{shape}/load_cleaning_timeline.pdf",
+        data_quality_timeline="<results>/{shape}/load_data_quality_timeline.pdf",
         shapes="<shapes>",
     output:
         output_data="<output_data>",
