@@ -180,4 +180,52 @@ integration_test:
           source: alb_external_test
 
   data_quality:
-    tests: []
+    tests:
+      - name: non_negative
+        method: range
+        minimum:
+          value_mode: fixed
+          value: 0
+
+      - name: abrupt_change
+        method: rate_of_change
+        difference_mode: fixed
+        threshold:
+          value_mode: median_absolute_increment
+          multiplier: 10
+
+      - name: repeated_daily_profile
+        method: repeated_pattern
+        pattern_duration: 24h
+        minimum_matches: 2
+
+      - name: flat_half_day
+        method: flatline
+        minimum_duration: 12h
+      
+      - name: unusual_level
+        method: contextual_level
+        reference_orders:
+          - period: 7D
+            radius: 4
+          - period: 1Y
+            radius: 2
+        robust_deviation_threshold: 10
+
+      - name: unusual_daily_shape
+        method: contextual_profile
+        profile_duration: 24h
+        profile_offset: 0h
+        reference_orders:
+          - period: 7D
+            radius: 4
+          - period: 1Y
+            radius: 10
+        robust_deviation_threshold: 10
+
+      - name: source_disagreement
+        method: source_disagreement
+        difference_mode: fixed
+        threshold:
+          value_mode: fixed
+          value: 0.001
