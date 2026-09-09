@@ -12,7 +12,7 @@ integration_test:
   load_sources:
     - neso
     - opsd
-    - entsoe
+    # - entsoe
     - entsoe_power_statistics
     - orkustofnun
 
