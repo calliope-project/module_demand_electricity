@@ -177,4 +177,9 @@ gap_filling:
         source: alb_external_test
 
 data_quality:
-  tests: []
+  tests:
+    - name: non_negative
+      method: range
+      minimum:
+        value_mode: fixed
+        value: 0
