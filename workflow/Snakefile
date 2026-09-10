@@ -12,6 +12,7 @@ pathvars:
     # User resources
     shapes="<resources>/user/{shape}/shapes.parquet",
     token_entsoe="<resources>/user/token_entsoe.txt",
+    external_profiles="<resources>/user/external_profiles",
     # Module results
     output_data="<results>/{shape}/demand_electricity_MW.parquet",
 
@@ -27,15 +28,56 @@ validate(config, workflow.source_path("internal/config.schema.yaml"))
 with open(workflow.source_path("internal/settings.yaml"), "r") as f:
     internal = yaml.safe_load(f)
 
+# Load the source registry
+with open(
+    workflow.source_path("internal/source_registry.yaml"),
+    encoding="utf-8",
+) as f:
+    SOURCE_REGISTRY = yaml.safe_load(f)
+
 # Load python files in scripts that are used in other scripts, but not run itself.
 # This is necessary for integrating the snakemake module via reference to GitHub.
 workflow.source_path("scripts/_plots.py")
 workflow.source_path("scripts/_schemas.py")
+workflow.source_path("scripts/_advanced_execution.py")
+workflow.source_path("scripts/_plot_timeline.py")
+workflow.source_path("scripts/_prepared_data.py")
+workflow.source_path("scripts/_source_capabilities.py")
+workflow.source_path("scripts/_tclean_config.py")
+workflow.source_path("scripts/_plot_data_quality_timeline.py")
+# Register source-specific python scripts for remote module use.
+for source in SOURCE_REGISTRY.values():
+    for python_file in source["workflow"]["python"]:
+        workflow.source_path(python_file)
 
 
 # Add all your includes here.
+
+
+# IMPORTANT: General .smk files must be included after _utils.smk
+include: "rules/_utils.smk"
+
+
+additional_config_validation()
+
+
+# Generic demand workflow rules.
+include: "rules/_helpers.smk"
+include: "rules/_source_helpers.smk"
 include: "rules/automatic.smk"
-include: "rules/clean.smk"
+include: "rules/basic.smk"
+include: "rules/advanced.smk"
+include: "rules/data_quality.smk"
+
+
+# Source-specific workflow rules.
+for source in SOURCE_REGISTRY.values():
+    for rule_file in source["workflow"]["rules"]:
+
+        include: rule_file
+
+
+# Demand finalisation and spatial re-aggregation.
 include: "rules/prepare_demand.smk"
 
 

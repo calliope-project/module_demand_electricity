@@ -1,0 +1,176 @@
+# This registry defines the data sources currently integrated into
+# Module Demand Electricity.
+#
+# Sources may optionally declare:
+# - display_name: human-readable name used for display and plotting.
+# - temporal_scope: valid source interval [start, end).
+#   Either bound may be omitted to indicate no declared bound.
+# - contexts: eligible contexts for this source.
+#   If omitted or empty, no context restriction is declared.
+
+entsoe:
+  display_name: ENTSO-E
+  temporal_scope:
+    start: "2005-01-01"
+  contexts:
+    - "ALB"
+    - "AUT"
+    - "BIH"
+    - "BEL"
+    - "BGR"
+    - "CHE"
+    - "CYP"
+    - "CZE"
+    - "DEU"
+    - "DNK"
+    - "EST"
+    - "ESP"
+    - "FIN"
+    - "FRA"
+    - "GBR"
+    - "GRC"
+    - "HRV"
+    - "HUN"
+    - "IRL"
+    - "ITA"
+    - "LTU"
+    - "LUX"
+    - "LVA"
+    - "MNE"
+    - "MKD"
+    - "NLD"
+    - "NOR"
+    - "POL"
+    - "PRT"
+    - "ROU"
+    - "SRB"
+    - "SWE"
+    - "SVN"
+    - "SVK"
+  workflow:
+    rules:
+      - "rules/source_entsoe.smk"
+    python:
+      - "scripts/sources/entsoe/download.py"
+      - "scripts/sources/entsoe/prepare.py"
+
+entsoe_power_statistics:
+  display_name: ENTSO-E Power Statistics
+  temporal_scope:
+    start: "2019-01-01"
+    end: "2026-01-01"
+  contexts:
+    - "ALB"
+    - "AUT"
+    - "BIH"
+    - "BEL"
+    - "BGR"
+    - "CHE"
+    - "CYP"
+    - "CZE"
+    - "DEU"
+    - "DNK"
+    - "EST"
+    - "ESP"
+    - "FIN"
+    - "FRA"
+    - "GBR"
+    - "GRC"
+    - "HRV"
+    - "HUN"
+    - "IRL"
+    - "ITA"
+    - "LTU"
+    - "LUX"
+    - "LVA"
+    - "MNE"
+    - "MKD"
+    - "NLD"
+    - "NOR"
+    - "POL"
+    - "PRT"
+    - "ROU"
+    - "SRB"
+    - "SWE"
+    - "SVN"
+    - "SVK"
+  workflow:
+    rules:
+      - "rules/source_entsoe_power_statistics.smk"
+    python:
+      - "scripts/sources/entsoe_power_statistics/download.py"
+      - "scripts/sources/entsoe_power_statistics/prepare.py"
+
+neso:
+  display_name: NESO
+  contexts:
+    - GBR
+  workflow:
+    rules:
+      - "rules/source_neso.smk"
+    python:
+      - "scripts/sources/neso/download.py"
+      - "scripts/sources/neso/prepare.py"
+
+opsd:
+  display_name: OPSD
+  temporal_scope:
+    start: "2005-01-01"
+    end: "2019-01-01"
+  contexts:
+    - "ALB"
+    - "AUT"
+    - "BIH"
+    - "BEL"
+    - "BGR"
+    - "CHE"
+    - "CYP"
+    - "CZE"
+    - "DEU"
+    - "DNK"
+    - "EST"
+    - "ESP"
+    - "FIN"
+    - "FRA"
+    - "GBR"
+    - "GRC"
+    - "HRV"
+    - "HUN"
+    - "IRL"
+    - "ISL"
+    - "ITA"
+    - "LTU"
+    - "LUX"
+    - "LVA"
+    - "MNE"
+    - "MKD"
+    - "NLD"
+    - "NOR"
+    - "POL"
+    - "PRT"
+    - "ROU"
+    - "SRB"
+    - "SWE"
+    - "SVN"
+    - "SVK"
+  workflow:
+    rules:
+      - "rules/source_opsd.smk"
+    python:
+      - "scripts/sources/opsd/download.py"
+      - "scripts/sources/opsd/prepare.py"
+
+
+orkustofnun:
+  display_name: Orkustofnun
+  contexts:
+    - ISL
+  temporal_scope:
+    start: "2019-01-01"
+    end: "2026-01-01"
+  workflow:
+    rules:
+      - "rules/source_orkustofnun.smk"
+    python:
+      - "scripts/sources/orkustofnun/download.py"
+      - "scripts/sources/orkustofnun/prepare.py"

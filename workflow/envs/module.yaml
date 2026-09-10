@@ -13,3 +13,11 @@ dependencies:
 - dask >=2026.6.0
 - numpy >=1.26.4
 - gregor >=0.1.0
+- cmap >=0.7.2
+- pandas >=3.0.3
+- geopandas >=1.1.4
+- matplotlib >=3.10.9
+- rioxarray >=0.20.0
+- pandera >=0.31.1
+- pyyaml >=6.0.3
+- tclean >=0.2.1

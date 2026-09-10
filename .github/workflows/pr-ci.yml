@@ -23,6 +23,10 @@ jobs:
         id: tests
         run: pixi run test-integration
         continue-on-error: true
+      - name: Run unit tests
+        id: unit-tests
+        run: pixi run test-unit
+        continue-on-error: true
       - name: Run snakemake linting
         id: linting
         run: |
@@ -37,6 +41,6 @@ jobs:
           path: tests/integration/resources/module/logs
           if-no-files-found: ignore
           retention-days: 30
-      - name: Fail if integration or linting failed
-        if: ${{ steps.tests.outcome == 'failure' || steps.linting.outcome == 'failure' }}
+      - name: Fail if tests or linting failed
+        if: ${{ steps.tests.outcome == 'failure' || steps.unit-tests.outcome == 'failure' || steps.linting.outcome == 'failure' }}
         run: exit 1
